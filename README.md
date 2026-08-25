@@ -104,8 +104,9 @@ Options:
 
       --symlink string           Use symlinks instead of file copies to reduce disk usage:
                                  'file'   - per-file relative symlinks to source files
-                                 'locale' - directory-level symlinks for identical locales
-                                            (also uses per-file symlinks for the base locale)
+                                 'locale' - directory-level symlinks for identical locales;
+                                            the base locale is deployed as real files, so the
+                                            resulting pub/static tree is fully self-contained
 ```
 
 ## Examples
@@ -233,9 +234,18 @@ theme+area combination and symlinks the rest:
     ./magento2-static-deploy -f --symlink=locale -t Vendor/Hyva nl_NL en_US de_DE
 
 Result:
-- `pub/static/frontend/Vendor/Hyva/nl_NL/` — real deployment (with per-file symlinks)
+- `pub/static/frontend/Vendor/Hyva/nl_NL/` — real deployment (real files, not symlinks)
 - `pub/static/frontend/Vendor/Hyva/en_US` → `nl_NL` (directory symlink)
 - `pub/static/frontend/Vendor/Hyva/de_DE` → `nl_NL` (directory symlink)
+
+Because the base locale (`nl_NL` above) is deployed as real files rather than
+per-file symlinks to source, the entire `pub/static` tree is self-contained:
+every symlink it contains resolves to another path inside `pub/static` itself.
+This makes `--symlink=locale` safe to use with deployment pipelines that copy
+only `pub/static` into a separate runtime image (e.g. a multi-stage Docker
+build where the web server container never has the Magento source tree
+available) — `--symlink=file` does not have this property, since its symlinks
+point back into `app/design/`, `vendor/`, or `lib/web/` outside `pub/static`.
 
 ### Web Server Configuration
 

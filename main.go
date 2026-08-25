@@ -76,7 +76,7 @@ func init() {
 	flag.StringVar(&contentVersion, "content-version", "", "Custom version of static content")
 	flag.BoolVar(&noLumaDispatch, "no-luma-dispatch", false, "Disable automatic dispatch of Luma themes to bin/magento")
 	flag.StringVar(&phpBinary, "php", "php", "Path to PHP binary for Luma theme dispatch")
-	flag.StringVar(&symlinkMode, "symlink", "", "Use symlinks instead of copies: 'file' (per-file symlinks to source) or 'locale' (directory-level symlinks for identical locales)")
+	flag.StringVar(&symlinkMode, "symlink", "", "Use symlinks instead of copies: 'file' (per-file symlinks to source) or 'locale' (directory-level symlinks to a fully materialized base locale, self-contained within pub/static)")
 
 	// Custom usage message
 	flag.Usage = func() {
@@ -225,7 +225,7 @@ func deployStatic(magentoRoot string, locales, themes, areas []string, numJobs i
 		version = fmt.Sprintf("%d", time.Now().Unix())
 	}
 
-	useSymlink := (symlinkMode == "file" || symlinkMode == "locale")
+	useSymlink := symlinkMode == "file"
 
 	// Create deployment jobs
 	jobs := createDeployJobs(locales, themes, areas)
